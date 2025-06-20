@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  # Python Backend API 1
+  backend-python-api:
+    build:
+      context: ./backend # Path to your first Python app
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/main
+    env_file:
+      - ./backend/.env # Load environment variables for this backend
+
