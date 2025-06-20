@@ -2,10 +2,10 @@
 from fastapi import FastAPI, HTTPException
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import os
-import numpy
-import sklearn
-import matplotlib
-import pandas
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression # Example using a simple sklearn model
+# import matplotlib.pyplot as plt # Matplotlib is typically for plotting, not direct API returns
 
 # --- 1. Define Settings Class for Environment Variables ---
 # BaseSettings from pydantic-settings helps manage settings,
@@ -30,9 +30,9 @@ class Settings(BaseSettings):
 
 # --- 2. Initialize FastAPI Application ---
 app = FastAPI(
-    title="Environment Variable Example API",
-    description="A simple FastAPI app demonstrating environment variable usage.",
-    version="1.0.0"
+    title="Environment Variable and Data Science Example API",
+    description="A FastAPI app demonstrating environment variables and basic data science library usage.",
+    version="1.0.1" # Updated version to reflect changes
 )
 
 # --- 3. Load Settings ---
@@ -44,14 +44,10 @@ try:
 except Exception as e:
     # Handle cases where required environment variables are missing
     print(f"Error loading settings: {e}")
-    # In a real-world scenario, you might want to log this and exit
-    # sys.exit(1) or raise the exception. For this example, we'll let
-    # FastAPI start but endpoint calls related to missing vars will fail.
-    # For demonstration, we'll just print and let it potentially crash later.
     settings = None # Indicate that settings failed to load
 
 
-# --- 4. Define an Endpoint that Uses Environment Variables ---
+# --- 4. Define Endpoints ---
 
 @app.get("/")
 async def read_root():
@@ -80,11 +76,51 @@ async def get_secure_data(user_api_key: str):
         raise HTTPException(status_code=401, detail="Unauthorized: Invalid API Key")
     return {"message": "Access granted to secure data!", "database_info": settings.database_url}
 
+@app.get("/analyze-data")
+async def analyze_data():
+    """
+    Endpoint demonstrating the use of NumPy, Pandas, and Sci-kit Learn.
+    It creates a sample dataset, performs a simple calculation,
+    and pretends to train a simple model.
+    """
+    # Using NumPy
+    data = np.array([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    mean_value = np.mean(data)
+    std_dev = np.std(data)
+
+    # Using Pandas to create a DataFrame
+    df = pd.DataFrame({
+        'feature1': np.random.rand(10) * 100,
+        'feature2': np.random.rand(10) * 50,
+        'target': np.random.rand(10) * 200
+    })
+    df_description = df.describe().to_dict() # Get descriptive statistics
+
+    # Using Sci-kit Learn (a very basic example: dummy model or import check)
+    # In a real scenario, you'd train a model with actual features and targets.
+    try:
+        model = LinearRegression()
+        # For demonstration, let's just show it's imported and could be used
+        # If we had actual features X and target y, we'd do model.fit(X, y)
+        sklearn_info = "sklearn.linear_model.LinearRegression imported successfully."
+    except Exception as e:
+        sklearn_info = f"Failed to load sklearn model: {e}"
+
+    return {
+        "message": "Data analysis performed using NumPy, Pandas, and Sci-kit Learn.",
+        "numpy_results": {
+            "mean": float(mean_value), # Convert numpy types to native Python types for JSON serialization
+            "standard_deviation": float(std_dev)
+        },
+        "pandas_dataframe_description": df_description,
+        "sklearn_status": sklearn_info
+    }
+
 # --- 5. How to Run This Application ---
 # To run this application, you will need Uvicorn.
 # 1. Save the code above as `main.py`.
-# 2. Install necessary libraries:
-#    pip install fastapi uvicorn "pydantic-settings[dotenv]"
+# 2. Ensure necessary libraries are installed (from your requirements.txt):
+#    pip install -r requirements.txt
 # 3. Create a `.env` file in the same directory as `main.py` (optional, but recommended):
 #    APP_NAME="My Production API"
 #    API_KEY="supersecretapikey123"
@@ -96,3 +132,4 @@ async def get_secure_data(user_api_key: str):
 # - http://127.0.0.1:8000/
 # - http://127.0.0.1:8000/docs (for interactive API documentation)
 # - Try http://127.0.0.1:8000/secure-data?user_api_key=your_api_key_from_env
+# - Try the new data analysis endpoint: http://127.0.0.1:8000/analyze-data

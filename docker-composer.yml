@@ -13,3 +13,14 @@ services:
     env_file:
       - ./backend/.env # Load environment variables for this backend
 
+    
+  backend-python-api-2:
+    build:
+      context: ./backend_2 # Path to your first Python app
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend_2:/main
+    env_file:
+      - ./backend_2/.env # Load environment variables for this backend
